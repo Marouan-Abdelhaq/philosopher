@@ -11,10 +11,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-// #include "philosopher.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "philosopher.h"
 
 int	is_num(char *str)
 {
@@ -75,8 +72,10 @@ int	ft_atoi(const char *str)
 
 int	main(int argc, char **argv)
 {
-	int	i;
+    int    i;
+    t_data    *data;
 
+    i = 0;
 	if (argc != 5 && argc != 6)
 	{
 		printf("Error: Invalid number of arguments\n");
@@ -89,11 +88,38 @@ int	main(int argc, char **argv)
 	}
 	if (ft_atoi(argv[1]) == 0)
 		return (1);
-	i = 1;
-	while (i < argc)
-	{
-		printf("%d\n", ft_atoi(argv[i]));
-		i++;
-	}
+    if (ft_atoi(argv[1]) < 1 || ft_atoi(argv[2]) < 1 || ft_atoi(argv[3]) < 1)
+    {
+        printf("Error: Invalid arguments\n");
+        return (1);
+    }
+    if (argc == 6 && ft_atoi(argv[5]) < 1)
+    {
+        printf("Error: Invalid arguments\n");
+        return (1);
+    }
+    data = init_tabl(argc, argv);
+    if (!data)
+    {
+        printf("Error: malloc failed\n");
+        return (1);
+    }
+    ft_check(data);
+    while (i < data->philo_count)
+    {
+        pthread_join(data->philosophers[i].thread, NULL);
+        i++;
+    }
+    i = 0;
+    while (i < data->philo_count)
+    {
+        pthread_mutex_destroy(&data->forks[i]);
+        i++;
+    }
+    pthread_mutex_destroy(&data->print_mutex);
+    pthread_mutex_destroy(&data->meal_mutex);
+    free(data->forks);
+    free(data->philosophers);
+    free(data);
 	return (0);
 }
